@@ -478,15 +478,96 @@ html{font-family:system-ui;-ms-text-size-adjust:100%;-webkit-text-size-adjust:10
           <div class='postTextRelated' id='postTextRelated'>
             <script>
               /*<![CDATA[*/
-              var relatedTitles = [], relatedTitlesNum = 0, relatedUrls = [], relatedThumbnails = []; var currentPostUrl = window.location.href; function related_results_labels(e) { for (var t = 0; t < e.feed.entry.length; t++) { var r = e.feed.entry[t]; var postUrl = ""; for (var l = 0; l < r.link.length; l++) { if ("alternate" == r.link[l].rel) { postUrl = r.link[l].href; break; } } if (postUrl !== currentPostUrl) { relatedTitles[relatedTitlesNum] = r.title.$t; var a = r.media$thumbnail && r.media$thumbnail.url ? r.media$thumbnail.url : noImage; relatedThumbnails[relatedTitlesNum] = a; relatedUrls[relatedTitlesNum] = postUrl; relatedTitlesNum++; } } removeRelatedDuplicates(); } function removeRelatedDuplicates() { var uniqueUrls = [], uniqueTitles = [], uniqueThumbnails = []; for (var a = 0; a < relatedUrls.length; a++) { if (!contains(uniqueUrls, relatedUrls[a])) { uniqueUrls.push(relatedUrls[a]); uniqueTitles.push(relatedTitles[a]); uniqueThumbnails.push(relatedThumbnails[a]); } } relatedTitles = uniqueTitles; relatedUrls = uniqueUrls; relatedThumbnails = uniqueThumbnails; } function contains(e, t) { for (var r = 0; r < e.length; r++) { if (e[r] == t) return true; } return false; } function printRelatedLabels() { var e = midRelatedPostNum, t = Math.min(e, relatedTitles.length), r = []; for (var a = 0; a < t; a++) { var l = document.createElement("p"); l.classList.add("relatedColumn","card"); var n = a, i = relatedTitles[n], d = relatedUrls[n], s = updateImageUrls(relatedThumbnails[n]), u = document.createElement("img"); u.setAttribute("src", s); u.setAttribute("alt", i); u.setAttribute("height", "72"); u.setAttribute("width", "72"); u.classList.add("relatedThumbnail"); var m = document.createElement("span"); m.classList.add("relatedText"); m.innerText = midRelatedText; var h = document.createElement("a"); h.setAttribute("href", d); h.setAttribute("target", "_blank"); h.classList.add("max-line-1"); h.innerText = i; l.appendChild(u); l.appendChild(m); l.appendChild(h); r.push(l); } return r; }
+var relatedTitles = [], relatedTitlesNum = 0, relatedUrls = [], relatedThumbnails = [];
+    var currentPostUrl = window.location.href.replace(/\/$/, "").split("?")[0];
+    function shuffleArrays(titles, urls, thumbnails) {
+      for (let i = titles.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [titles[i], titles[j]] = [titles[j], titles[i]];
+        [urls[i], urls[j]] = [urls[j], urls[i]];
+        [thumbnails[i], thumbnails[j]] = [thumbnails[j], thumbnails[i]];
+      }
+      return { titles, urls, thumbnails };
+    }
+    function related_results_labels(e) {
+      if (!e.feed || !e.feed.entry) {
+        console.error("No related posts found.");
+        return;
+      }
+      for (var t = 0; t < e.feed.entry.length; t++) {
+        var r = e.feed.entry[t];
+        var postUrl = "";
+        for (var l = 0; l < r.link.length; l++) {
+          if ("alternate" == r.link[l].rel) {
+            postUrl = r.link[l].href.replace(/\/$/, "").split("?")[0];
+            break;
+          }
+        }
+        if (postUrl !== currentPostUrl) {
+          relatedTitles[relatedTitlesNum] = r.title.$t;
+          var a = r.media$thumbnail && r.media$thumbnail.url ? r.media$thumbnail.url : noImage;
+          relatedThumbnails[relatedTitlesNum] = a;
+          relatedUrls[relatedTitlesNum] = postUrl;
+          relatedTitlesNum++;
+        }
+      }
+      removeRelatedDuplicates();
+      // Acak array setelah duplikat dihapus
+      let shuffled = shuffleArrays(relatedTitles, relatedUrls, relatedThumbnails);
+      relatedTitles = shuffled.titles;
+      relatedUrls = shuffled.urls;
+      relatedThumbnails = shuffled.thumbnails;
+    }
+    function removeRelatedDuplicates() {
+      let unique = [...new Map(relatedUrls.map((url, i) => [url, { url, title: relatedTitles[i], thumb: relatedThumbnails[i] }])).values()];
+      relatedUrls = unique.map(item => item.url);
+      relatedTitles = unique.map(item => item.title);
+      relatedThumbnails = unique.map(item => item.thumb);
+    }
+    function contains(e, t) {
+      for (var r = 0; r < e.length; r++) {
+        if (e[r] == t) return true;
+      }
+      return false;
+    }
+    function printRelatedLabels() {
+      var e = midRelatedPostNum, t = Math.min(e, relatedTitles.length), r = [];
+      for (var a = 0; a < t; a++) {
+        var l = document.createElement("p");
+        l.classList.add("relatedColumn", "card");
+        var n = a, i = relatedTitles[n], d = relatedUrls[n], s = updateImageUrls(relatedThumbnails[n]);
+        var u = document.createElement("img");
+        u.setAttribute("src", s);
+        u.setAttribute("alt", i);
+        u.setAttribute("height", "72");
+        u.setAttribute("width", "72");
+        u.setAttribute("loading", "lazy");
+        u.classList.add("relatedThumbnail");
+        var m = document.createElement("span");
+        m.classList.add("relatedText");
+        m.innerText = midRelatedText;
+        var h = document.createElement("a");
+        h.setAttribute("href", d);
+        h.setAttribute("target", "_blank");
+        h.classList.add("max-line-1");
+        h.innerText = i;
+        l.appendChild(u);
+        l.appendChild(m);
+        l.appendChild(h);
+        r.push(l);
+      }
+      return r;
+    }
               /*]]>*/
             </script>
             <b:if cond='data:post.labels'>
               <b:loop index='i' values='data:post.labels' var='label'>
                 <b:if cond='data:i&lt;1'>
-                  <script expr:src='&quot;/feeds/posts/default/-/&quot; + data:label.name + &quot;?alt=json-in-script&amp;callback=related_results_labels&amp;max-results=500&quot;' rel='preload'></script>
+                  <script expr:src='&quot;/feeds/posts/default/-/&quot; + data:label.name + &quot;?alt=json-in-script&amp;callback=related_results_labels&amp;max-results=500&amp;orderby=published&quot;' rel='preload'/>
                 </b:if>
               </b:loop>
+            <b:else/>
+              <script src='/feeds/posts/default?alt=json-in-script&amp;callback=related_results_labels&amp;max-results=500&amp;orderby=published'/>
             </b:if>
 
           </div>
