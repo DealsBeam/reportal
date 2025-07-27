@@ -5,6 +5,7 @@
 
 ## Description
 Reportal is a sleek and modern website theme designed to deliver an exceptional user experience with a responsive, SEO-friendly, and visually appealing design. Tailored for news portals, blogs, or corporate websites, Reportal ensures your content is presented in an organized and professional manner, captivating your audience with ease.
+Reportal is free with footer credit, if you want to delete or change footer credit you must purchase domain license at [https://yztheme.my.id](https://yztheme.my.id).
 
 ## Features
 - **Responsive Design**: Seamlessly adapts to all devices—desktops, tablets, and mobile phones.  
